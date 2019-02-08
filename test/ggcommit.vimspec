@@ -1,0 +1,96 @@
+function s:add_line(str)
+    put! =a:str
+endfunction
+
+function s:add_lines(lines)
+    for line in reverse(deepcopy(a:lines))
+        put! =line
+    endfor
+endfunction
+
+Describe GGcommit
+    Describe when it runs
+        It 'should not run on other filetypes than gitcommit'
+            new
+            call g:Expect(getline(1)).not.to_equal('<++>')
+        End
+
+        It 'should only execute on filetype=gitcommit'
+            new
+            setlocal filetype=gitcommit
+        End
+    End
+
+    Describe when it adds placeholders
+        It 'should add without unique id'
+            new
+            setlocal filetype=gitcommit
+            call g:Expect(getline(1)).to_equal('<++>')
+            call g:Expect(getline(2)).to_equal('')
+            call g:Expect(getline(3)).to_equal('<++>')
+            call g:Expect(getline(4)).to_equal('')
+            call g:Expect(getline(5)).to_equal('<++>')
+            call g:Expect(getline(6)).to_equal('')
+        End
+
+        It 'should add unique id'
+            new
+            call s:add_lines([
+                \ '',
+                \ '# Please enter the commit message for your changes. Lines starting',
+                \ '# with "#" will be ignored, and an empty message aborts the commit.',
+                \ '#',
+                \ '# On branch master##some_unique_id##',
+                \ '# Changes to be committed:'
+            \ ])
+            setlocal filetype=gitcommit
+            call g:Expect(getline(5)).to_equal('some_unique_id')
+        End
+
+        It 'should fail to add unique id with wrong matching pairs'
+            new
+            call s:add_lines([
+                \ '',
+                \ '# Please enter the commit message for your changes. Lines starting',
+                \ '# with "#" will be ignored, and an empty message aborts the commit.',
+                \ '#',
+                \ '# On branch master__some_unique_id__',
+                \ '# Changes to be committed:'
+            \ ])
+            setlocal filetype=gitcommit
+            call g:Expect(getline(5)).to_equal('<++>')
+        End
+
+        It 'should add unique id with custom matchin pairs'
+            new
+            call s:add_lines([
+                \ '',
+                \ '# Please enter the commit message for your changes. Lines starting',
+                \ '# with "#" will be ignored, and an empty message aborts the commit.',
+                \ '#',
+                \ '# On branch master__some_unique_id__',
+                \ '# Changes to be committed:'
+            \ ])
+            let g:loaded_ggcommit = 0
+            let g:ggcommit_pre_wrapper = '__'
+            let g:ggcommit_post_wrapper = '__'
+            setlocal filetype=gitcommit
+            call g:Expect(getline(5)).to_equal('some_unique_id')
+        End
+
+        It 'should re-assign value back to register'
+            new
+            call setreg('a', 'ggdG')
+            call s:add_lines([
+                \ '',
+                \ '# Please enter the commit message for your changes. Lines starting',
+                \ '# with "#" will be ignored, and an empty message aborts the commit.',
+                \ '#',
+                \ '# On branch master##some_unique_id##',
+                \ '# Changes to be committed:'
+            \ ])
+            setlocal filetype=gitcommit
+            call g:Expect(getreg('a')).to_equal('ggdG')
+        End
+    End
+End
