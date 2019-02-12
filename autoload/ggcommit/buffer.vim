@@ -49,5 +49,5 @@ endfunction
 
 function! ggcommit#buffer#try_swap_placeholder_with_id() abort
     let s:unique_id = ggcommit#buffer#get_unique_id()
-    5s/<++>/\=len(s:unique_id) ? s:unique_id : '<++>'
+    5s/<++>/\=len(s:unique_id) ? s:unique_id : "<++>"
 endfunction
