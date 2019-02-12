@@ -12,6 +12,7 @@ endfunction
 
 function! ggcommit#buffer#add_placeholders() abort
     call ggcommit#buffer#cache_reg_key_value()
+    call setreg(s:reg_key, '')
     call append(0, [
         \ '<++>',
         \ '',
